@@ -1,3 +1,13 @@
-out/*
+**/out/*
+
+# VS code configuration
 .vscode/*
+
+# visual studio configuration
+.vs/*
+
+# CMake configuration
+CMakePresets.json
+
+# Linux nonsense
 Makefile
