@@ -6,7 +6,10 @@
 namespace parser {
 
 TSTokenizer::TSTokenizer(std::string filename)
-    : file() {
+    : file()
+    , position(0)
+    , tokens()
+{
     file.open(filename);
 }
 
@@ -94,6 +97,24 @@ Token TSTokenizer::get_next_token() {
     }
     token.kind = Identifier;
     return token;
+}
+
+Token &TSTokenizer::next() {
+    if (tokens.size() == position)
+        tokens.push_back(get_next_token());
+    return tokens[position++];
+}
+
+Token &TSTokenizer::peek() {
+    if (tokens.size() == position)
+        tokens.push_back(get_next_token());
+    return tokens[position];
+}
+
+Token &TSTokenizer::operator[](std::size_t idx) {
+    for (int diff = idx - tokens.size() + 1; !(tokens.size() > idx) && diff != 0; --diff)
+        tokens.push_back(get_next_token());
+    return tokens[idx];
 }
 
 #undef simple_set

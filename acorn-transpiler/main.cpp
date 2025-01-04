@@ -8,6 +8,17 @@ const std::string filename = "lsp_defs.ts";
 int main() {
     parser::TSTokenizer tokenizer(filename);
 
-    for (std::size_t i = 0; i < 25; ++i)
-        tokenizer.get_next_token().print();
+    std::cout << sizeof(parser::Token) << std::endl;
+
+    tokenizer.peek().print(); // interface
+    tokenizer.next().print(); // interface
+    tokenizer.peek().print(); // Message
+    tokenizer.next().print(); // Message
+
+    std::cout << "===" << std::endl;
+    tokenizer[0].print(); // interface
+    tokenizer[1].print(); // Message
+    tokenizer[2].print(); // {
+    tokenizer[1].print(); // Message
+    tokenizer[0].print(); // interface
 }
