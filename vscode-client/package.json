@@ -1,0 +1,36 @@
+{
+    "name": "acorn-lsp-client",
+    "displayName": "acorn lsp client",
+    "description": "The LSP client for acorn language to communicate with the LSP server",
+    "version": "0.0.1",
+    "author": "Maddie",
+    "publisher": "maddie-dev",
+    "engines": {
+        "vscode": "^1.96.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "activationEvents": [
+        "onStartupFinished",
+        "workspaceContains:**/*.ac"
+    ],
+    "main": "./out/extension.js",
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "lint": "eslint src --ext ts"
+    },
+    "devDependencies": {
+        "@types/node": "20.x",
+        "@types/vscode": "^1.96.0",
+        "@typescript-eslint/eslint-plugin": "^7.14.1",
+        "@typescript-eslint/parser": "^7.11.0",
+        "eslint": "^8.57.0",
+        "typescript": "^5.4.5"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^9.0.1"
+    }
+}
