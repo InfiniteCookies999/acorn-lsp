@@ -13,11 +13,6 @@
 #include <mach-o/dyld.h>
 #endif
 
-// interface ResponseError {
-//  code: integer;
-//  message: string;
-// }
-
 static std::string get_executable_path() {
 #if WIN_OS
     char buffer[MAX_PATH];
