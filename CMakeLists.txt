@@ -11,7 +11,7 @@ endif()
 
 project ("acorn-lsp")
 
-add_executable (acorn-lsp "acorn-lsp.cpp" )
+add_executable (acorn-lsp "acorn-lsp.cpp"  "logger.h" "logger.cpp" "prelude.h")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET acorn-lsp PROPERTY CXX_STANDARD 20)

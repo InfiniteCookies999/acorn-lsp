@@ -1,7 +1,7 @@
 **/out/*
 
 # VS code configuration
-.vscode/*
+**/.vscode/*
 
 # visual studio configuration
 .vs/*
@@ -11,3 +11,7 @@ CMakePresets.json
 
 # Linux nonsense
 Makefile
+
+# javascript, ew
+**/node_modules/*
+**/package-lock.json
