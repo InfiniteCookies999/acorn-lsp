@@ -64,25 +64,41 @@ bool Logger::open() {
 }
 
 void Logger::info(const char* message) {
-    write(message, "INFO");
+    write(1, message, "INFO");
+}
+
+void Logger::info(const std::string& message) {
+    info(message.c_str());
 }
 
 void Logger::warn(const char* message) {
-    write(message, "WARN");
+    write(1, message, "WARN");
+}
+
+void Logger::warn(const std::string& message) {
+    warn(message.c_str());
 }
 
 void Logger::error(const char* message) {
-    write(message, "ERROR");
+    write(0, message, "ERROR");
 }
 
-void Logger::write(const char* message, const char* type_str) {
+void Logger::error(const std::string& message) {
+    error(message.c_str());
+}
 
+void Logger::write_timestamp(size_t pad, const char* type_str) {
     auto now = std::chrono::system_clock::now();
 
     // Convert to system time
     std::time_t sys_time = std::chrono::system_clock::to_time_t(now);
     std::tm timestamp = *std::localtime(&sys_time);
 
-    ostream << "[" << std::put_time(&timestamp, "%Y-%m-%d %H:%M:%S") << "][" << type_str <<  "]: ";
+    ostream << "[" << std::put_time(&timestamp, "%Y-%m-%d %H:%M:%S") << "][" << type_str << "]: ";
+    ostream << std::string(pad, ' ');
+}
+
+void Logger::write(size_t pad, const char* message, const char* type_str) {
+    write_timestamp(pad, type_str);
     ostream << message << "\n";
 }

@@ -17,9 +17,11 @@ int main() {
         return 1;
     }
 
-    logger.info("pizza!");
-    logger.warn("omg we so fucked up");
-    logger.error("HOLY FUCKING SHIT THIS IS CRITICAL");
+    logger.info("{} {}", "hello", 513412);
+    logger.warn("{} {}", "hello", 513412);
+    logger.error("{} {}", "hello", 513412);
+    
+    //make_message("{}")
 
     return 0;
 }
