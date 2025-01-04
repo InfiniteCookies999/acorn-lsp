@@ -11,6 +11,9 @@
 #undef max
 #elif MAC_OS
 #include <mach-o/dyld.h>
+#elif UNIX_OS
+#include <linux/limits.h>
+#include <unistd.h>
 #endif
 
 // interface ResponseError {
