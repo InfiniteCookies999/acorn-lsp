@@ -1,15 +1,16 @@
 // vim: ft=cpp
 
-#include <cstdlib>
-#include <unordered_map>
 #include <vector>
 #include <string>
+#include <cstdlib>
 #include <cstdint>
 #include <ostream>
 #include <variant>
 #include <fstream>
 #include <optional>
 #include <iostream>
+#include <functional>
+#include <unordered_map>
 
 namespace parser {
 
@@ -70,6 +71,7 @@ class TSTokenizer {
   public:
     TSTokenizer(const std::string&);
 
+    bool find(std::function<bool(Token&)>);
     Token& operator[](std::size_t);
     Token& next();
     Token& peek();
@@ -151,7 +153,8 @@ struct Any {
         uinteger,
         decimal,
         boolean,
-        null
+        null,
+        identifier_t
     >;
 
     Type data;
@@ -175,7 +178,8 @@ using types = std::variant<
     LSP::decimal,
     LSP::Array,
     LSP::Object,
-    LSP::Any
+    LSP::Any,
+    identifier_t
 >;
 
 };
@@ -206,6 +210,7 @@ using type_variant = std::variant<
     LSP::Array,
     LSP::Object,
     LSP::Any,
+    identifier_t,
     sum_t
 >;
 
@@ -268,11 +273,13 @@ struct interface_t {
 
 class TSAssembler {
     TSTokenizer tokenizer;
+    std::vector<constructs::identifier_t> unresolved_identifiers;
 
   public:
     TSAssembler(const std::string& filename);
 
     constructs::interface_t get_parsta();
+    ~TSAssembler();
 };
 
 }

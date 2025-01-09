@@ -4,7 +4,6 @@
 #include <cassert>
 #include <iostream>
 #include <algorithm>
-#include <variant>
 
 namespace parser {
 
@@ -14,6 +13,10 @@ TSTokenizer::TSTokenizer(const std::string& filename)
     , tokens()
 {
     file.open(filename);
+}
+
+bool TSTokenizer::find(std::function<bool(Token&)> func) {
+    return std::find_if(tokens.begin(), tokens.end(), func) == tokens.end();
 }
 
 void TSTokenizer::skip_comment(char& cur_char) {
@@ -91,21 +94,15 @@ Token TSTokenizer::get_next_token() {
 
     if (token.content == "extends") {
         token.kind = Keyword;
-        std::cout << __LINE__ << ":";
-        token.print();
         return token;
     }
 
     if (token.content == "interface") {
         token.kind = Keyword;
-        std::cout << __LINE__ << ":";
-        token.print();
         return token;
     }
 
     token.kind = Identifier;
-    std::cout << __LINE__ << ":";
-    token.print();
     return token;
 }
 
@@ -145,6 +142,15 @@ TSAssembler::TSAssembler(const std::string& filename)
 {
 }
 
+TSAssembler::~TSAssembler() {
+    if (!unresolved_identifiers.empty()) {
+        std::cerr << "there are unresolved identifiers:" << std::endl;
+        for (const auto& ident: unresolved_identifiers) {
+            std::cerr << " - " << ident << std::endl;
+        }
+    }
+}
+
 static constructs::type_variant lsp_types_to_type_var(const constructs::LSP::types& types)
 {
     switch (types.index()) {
@@ -156,13 +162,15 @@ static constructs::type_variant lsp_types_to_type_var(const constructs::LSP::typ
         case 5: return constructs::type_variant{std::get<5>(types)};
         case 6: return constructs::type_variant{std::get<6>(types)};
         case 7: return constructs::type_variant{std::get<7>(types)};
+        case 8: return constructs::type_variant{std::get<8>(types)};
+        case 9: return constructs::type_variant{std::get<9>(types)};
     }
 
     assert(false && "FUCK");
 }
 
 #define IF(s) if (str == s)
-static constructs::LSP::types unsafe_from_string(const std::string& str) {
+static constructs::LSP::types from_string(const std::string& str) {
     IF("boolean")   return constructs::LSP::boolean{};
     IF("string")    return constructs::LSP::string{};
     IF("integer")   return constructs::LSP::integer{};
@@ -173,12 +181,11 @@ static constructs::LSP::types unsafe_from_string(const std::string& str) {
     IF("object")    return constructs::LSP::Object{};
     IF("LSPAny")    return constructs::LSP::Any{};
 
-    std::cout << "got: " << str << std::endl;
-    assert(false && "invalid string passed into unsafe_from_string");
+    return str;
 }
 #undef IF
 
-static constructs::field_t field_parser(TSTokenizer& tokenizer) {
+static constructs::field_t field_parser(std::vector<constructs::identifier_t>& unresolved_identifiers, TSTokenizer& tokenizer) {
     using enum parser::TokenType;
 
     constructs::field_t field;
@@ -207,24 +214,34 @@ static constructs::field_t field_parser(TSTokenizer& tokenizer) {
     if (type_tokens.size() == 1) {
         assert(type_tokens[0].kind == Identifier && "identifier expected");
         assert(!type_tokens[0].content.empty() && "content expected");
-        constructs::LSP::types tv = unsafe_from_string(type_tokens[0].content);
+
+        constructs::LSP::types tv = from_string(type_tokens[0].content);
         type.type = lsp_types_to_type_var(tv);
         field.type = std::move(type);
+
+        if (std::holds_alternative<constructs::identifier_t>(tv)) {
+            if (!tokenizer.find([&](Token& token) -> bool {
+                if (token.kind != Identifier) return false;
+                return token.content == type_tokens[0].content;
+            })) {
+                unresolved_identifiers.push_back(type_tokens[0].content);
+            }
+        }
+
         return field;
     }
 
     auto is_pipe = [](Token& t){ return t.kind == Pipe; };
 
     if(std::find_if(type_tokens.begin(), type_tokens.end(), is_pipe) != type_tokens.end()) {
-        type_tokens.erase(std::remove_if(
-            type_tokens.begin(), type_tokens.end(), is_pipe));
+        std::erase_if(type_tokens, is_pipe);
 
         std::vector<constructs::LSP::types> types(type_tokens.size());
         std::transform(type_tokens.begin(), type_tokens.end(), types.begin(),
                        [](Token& token){
                            assert(token.kind == Identifier && "identifier expected");
                            assert(!token.content.empty() && "content expected");
-                           return unsafe_from_string(token.content);
+                           return from_string(token.content);
                        });
         constructs::sum_t sum{
             .variant = types
@@ -251,6 +268,12 @@ constructs::interface_t TSAssembler::get_parsta() {
 
     result.ident = ident.content;
 
+    if (!unresolved_identifiers.empty()) {
+        std::erase_if(unresolved_identifiers, [&](constructs::identifier_t ident) {
+            return ident == result.ident;
+        });
+    }
+
     if (tokenizer.peek().kind == Keyword && tokenizer.peek().content == "extends") {
         tokenizer.skip();
         assert(tokenizer.peek().kind == Identifier && "identifier expected");
@@ -259,7 +282,7 @@ constructs::interface_t TSAssembler::get_parsta() {
 
     assert(tokenizer.next().kind == LBrace && "Left brace expected");
     while (tokenizer.peek().kind != RBrace) {
-        result.fields.push_back(field_parser(tokenizer));
+        result.fields.push_back(field_parser(unresolved_identifiers, tokenizer));
     }
     assert(tokenizer.next().kind == RBrace);
     return result;

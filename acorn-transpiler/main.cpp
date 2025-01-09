@@ -13,4 +13,5 @@ int main() {
     std::cout << (std::string)assembler.get_parsta() << std::endl;
     std::cout << (std::string)assembler.get_parsta() << std::endl;
     std::cout << (std::string)assembler.get_parsta() << std::endl;
+    std::cout << (std::string)assembler.get_parsta() << std::endl;
 }
