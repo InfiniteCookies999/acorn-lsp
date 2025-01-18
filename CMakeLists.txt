@@ -18,4 +18,4 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
 endif()
 
 # Include sub-projects.
-# add_subdirectory ("acorn-lsp")
+add_subdirectory ("acorn-transpiler")
